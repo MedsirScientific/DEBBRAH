@@ -367,7 +367,7 @@ San Antonio Breast Cancer Symposium 2023</h1>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
 <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
-workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger"
+workflowr <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span>
 </button>
 </p>
@@ -378,8 +378,8 @@ aria-hidden="true"></span>
 </li>
 <li>
 <a data-toggle="tab" href="#checks"> Checks <span
-class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> </a>
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</a>
 </li>
 <li>
 <a data-toggle="tab" href="#versions">Past versions</a>
@@ -392,9 +392,9 @@ aria-hidden="true"></span> </a>
 </p>
 <p>
 <strong>Checks:</strong> <span
-class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7
 <span class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> 1
+aria-hidden="true"></span> 0
 </p>
 <p>
 <strong>Knit directory:</strong> <code>DEBBRAH/</code> <span
@@ -417,21 +417,18 @@ versions</em> tab lists the development history.
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges">
-<span class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted
-changes </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
 </p>
 </div>
-<div id="strongRMarkdownfilestronguncommittedchanges"
+<div id="strongRMarkdownfilestronguptodate"
 class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown file has staged changes. To know which version of the
-R Markdown file created these results, you’ll want to first commit it to
-the Git repo. If you’re still working on the analysis, you can ignore
-this warning. When you’re finished, you can run
-<code>wflow_publish</code> to commit the R Markdown file and build the
-HTML.</p>
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
 </div>
 </div>
 </div>
@@ -522,13 +519,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrong016b091">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomMedsirScientificDEBBRAHtreeeb9215749cd1454293041f58c8efeb129ac1c478targetblankeb92157a">
 <span class="glyphicon glyphicon-ok text-success"
-aria-hidden="true"></span> <strong>Repository version:</strong> 016b091
+aria-hidden="true"></span> <strong>Repository version:</strong>
+<a href="https://github.com/MedsirScientific/DEBBRAH/tree/eb9215749cd1454293041f58c8efeb129ac1c478" target="_blank">eb92157</a>
 </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrong016b091"
+<div
+id="strongRepositoryversionstrongahrefhttpsgithubcomMedsirScientificDEBBRAHtreeeb9215749cd1454293041f58c8efeb129ac1c478targetblankeb92157a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -537,7 +536,8 @@ and connecting the code version to the results is critical for
 reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version 016b091.
+The results in this page were generated with repository version
+<a href="https://github.com/MedsirScientific/DEBBRAH/tree/eb9215749cd1454293041f58c8efeb129ac1c478" target="_blank">eb92157</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -556,13 +556,6 @@ Ignored files:
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
     Ignored:    analysis/.DS_Store
-    Ignored:    analysis/DEBBRAH_0102-001_prior-lines_2023-05-30.png
-    Ignored:    analysis/DEBBRAH_0109-006_prior-lines_2023-05-30.png
-    Ignored:    analysis/DEBBRAH_0116-004_prior-lines_2023-05-30.png
-    Ignored:    analysis/DEBBRAH_0120-007_prior-lines_2023-05-30.png
-    Ignored:    analysis/DEBBRAH_0121-006_prior-lines_2023-05-30.png
-    Ignored:    analysis/DEBBRAH_0124-004_prior-lines_2023-05-30.png
-    Ignored:    analysis/DEBBRAH_0124-006_prior-lines_2023-05-30.png
     Ignored:    data/DEBBRAH_Adverse Events_2023_05_11.xlsx
     Ignored:    data/DEBBRAH_Concomitant Medication_2023_05_11.xlsx
     Ignored:    data/DEBBRAH_Cycles_2023_05_11.xlsx
@@ -582,16 +575,6 @@ Untracked files:
     Untracked:  output/DEBBRAH_Figure2_PFS_cohort5_2023-06-01.png
     Untracked:  output/DEBBRAH_Figure3_PFS_weeks16-24_cohort5_2023-06-01.png
 
-Unstaged changes:
-    Modified:   .gitignore
-    Modified:   analysis/WP4_efficacy_2023-06-01.Rmd
-
-Staged changes:
-    New:        analysis/WP1_QA_tumor-assessments_2023-05-11.Rmd
-    New:        analysis/WP2_disease-timecourse_2023-05-23.Rmd
-    New:        analysis/WP3_prior-lines-ABC_2023-05-30.Rmd
-    New:        analysis/WP4_efficacy_2023-06-01.Rmd
-
 </code></pre>
 <p>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not
@@ -605,10 +588,75 @@ have uncommitted changes.
 <hr>
 </div>
 <div id="versions" class="tab-pane fade">
+
 <p>
-There are no past versions. Publish this analysis with
-<code>wflow_publish()</code> to start tracking its development.
+These are the previous versions of the repository in which changes were
+made to the R Markdown
+(<code>analysis/WP1_QA_tumor-assessments_2023-05-11.Rmd</code>) and HTML
+(<code>docs/WP1_QA_tumor-assessments_2023-05-11.html</code>) files. If
+you’ve configured a remote Git repository (see
+<code>?wflow_git_remote</code>), click on the hyperlinks in the table
+below to view the files as they were in that past version.
 </p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/MedsirScientific/DEBBRAH/blob/950b8026fa4ef3fffd51a88e56a3222d7d470a2d/analysis/WP1_QA_tumor-assessments_2023-05-11.Rmd" target="_blank">950b802</a>
+</td>
+<td>
+MedsirScientific
+</td>
+<td>
+2023-07-14
+</td>
+<td>
+Sync up everything before laptop reset
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/MedsirScientific/DEBBRAH/950b8026fa4ef3fffd51a88e56a3222d7d470a2d/docs/WP1_QA_tumor-assessments_2023-05-11.html" target="_blank">950b802</a>
+</td>
+<td>
+MedsirScientific
+</td>
+<td>
+2023-07-14
+</td>
+<td>
+Sync up everything before laptop reset
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 <hr>
 </div>
 </div>

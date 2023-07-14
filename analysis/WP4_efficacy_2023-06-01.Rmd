@@ -1,0 +1,389 @@
+---
+title: "DEBBRAH | Statistical Analysis of efficacy endpoints for cohort 5"
+author: "Daniel Alcala"
+date: "2023-06-01"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(janitor)
+library(lubridate)
+library(here)
+library(survival)
+library(survminer)
+library(survMisc)
+library(tidyverse)
+library(ggsurvfit)
+
+here("WP4_efficacy_2023-06-01.Rmd")
+```
+
+```{r}
+data01_efficacy <- read_excel(
+  here("data/DEBBRAH_OS-PFS_2023-06-01.xlsx"),
+    col_types = c("text", "date", "numeric", "date", "numeric", "date")
+  ) %>% 
+  clean_names()
+
+rmarkdown::paged_table(data01_efficacy)
+```
+
+```{r}
+customize_labels <- function (p, font.title = NULL,
+                              font.subtitle = NULL, font.caption = NULL,
+                              font.x = NULL, font.y = NULL, font.xtickslab = NULL, font.ytickslab = NULL)
+{
+  original.p <- p
+  if(is.ggplot(original.p)) list.plots <- list(original.p)
+  else if(is.list(original.p)) list.plots <- original.p
+  else stop("Can't handle an object of class ", class (original.p))
+  .set_font <- function(font){
+    font <- ggpubr:::.parse_font(font)
+    ggtext::element_markdown (size = font$size, face = font$face, colour = font$color)
+  }
+  for(i in 1:length(list.plots)){
+    p <- list.plots[[i]]
+    if(is.ggplot(p)){
+      if (!is.null(font.title)) p <- p + theme(plot.title = .set_font(font.title))
+      if (!is.null(font.subtitle)) p <- p + theme(plot.subtitle = .set_font(font.subtitle))
+      if (!is.null(font.caption)) p <- p + theme(plot.caption = .set_font(font.caption))
+      if (!is.null(font.x)) p <- p + theme(axis.title.x = .set_font(font.x))
+      if (!is.null(font.y)) p <- p + theme(axis.title.y = .set_font(font.y))
+      if (!is.null(font.xtickslab)) p <- p + theme(axis.text.x = .set_font(font.xtickslab))
+      if (!is.null(font.ytickslab)) p <- p + theme(axis.text.y = .set_font(font.ytickslab))
+      list.plots[[i]] <- p
+    }
+  }
+  if(is.ggplot(original.p)) list.plots[[1]]
+  else list.plots
+}
+```
+
+```{r}
+data02_efficacy_os <- data01_efficacy %>% 
+  mutate(
+    os_time = (os_date - c1d1_date + 1)/(365.25/12)
+  ) %>% 
+  rename(
+    event = os_event,
+    time = os_time
+  )
+
+survfit(Surv(time, event) ~ 1, data = data02_efficacy_os)
+# summary(survfit(Surv(time, event) ~ 1, data = data02_efficacy_os))
+```
+
+```{r}
+hr0 <- log(2)/2
+hrobs <- log(2)/13.3
+events <- 5
+
+pvalue <- pnorm(sqrt(events)*(log(hrobs)-log(hr0)))
+
+format(pvalue, scientific = FALSE)
+```
+
+```{r}
+### Plot ----------------------------------------------------------------------
+os_cohort5 <- ggsurvplot(
+  fit = survfit(Surv(time, event) ~ 1, data = data02_efficacy_os),
+  xlab = "Time since study treatment start date (months)", 
+  ylab = "Overall Survival",
+  conf.int = FALSE,
+  conf.int.fill = "#123467",
+  conf.int.alpha = c(0.15),
+  surv.median.line = "hv",
+  xlim = c(0,21.9),
+  ylim = c(0,1.009),
+  censor.size = 3.5,
+  size = 1,
+  break.time.by = 3,
+  axes.offset = FALSE,
+  surv.scale = "percent",
+  break.y.by = 0.20,
+  risk.table = FALSE,
+  fontsize = 3,
+  ggtheme = theme_classic(),
+  palette = "#123467",
+  legend.labs = " ",
+  legend.title = "Cohort 5"
+)
+
+### Modify theme --------------------------------------------------------------
+os_cohort5 <- customize_labels(
+  os_cohort5,
+  font.title     = c(14, "bold",  "#0a0908"),
+  font.caption   = c(12, "plain", "#0a0908"),
+  font.x         = c(12, "bold",  "#0a0908"),          
+  font.y         = c(12, "bold",  "#0a0908"),      
+  font.xtickslab = c(8, "plain", "#0a0908"),
+  font.ytickslab = c(8, "plain", "#0a0908")
+)
+
+grid.draw.ggsurvplot <- function(x){
+  survminer:::print.ggsurvplot(x, newpage = FALSE)
+}
+
+### Add vertical dash line ----------------------------------------------------
+os_cohort5$plot <- os_cohort5$plot + geom_vline(
+  xintercept = 36, linetype = "longdash"
+  )
+
+caption1 <- paste(strwrap(
+  "Median OS rate: 13.3
+  (95% CI: 5.7-NA)
+  Events: 5/7", 23), collapse = "\n"
+  )
+
+os_cohort5$plot <- os_cohort5$plot + annotate(
+  "text", x = 6, y = 0.2,
+  label = caption1,
+  cex = 3.5, vjust = "center", hjust = "center", fontface = 20
+  )
+
+### Save plot ---------------------------------------------------------------
+# ggsave(
+#   here("output/DEBBRAH_Figure1_OS_cohort5_2023-06-01.png"),
+#   os_cohort5,
+#   width = 24,
+#   height = 10,
+#   units = "cm",
+#   dpi = 300
+#   )
+
+### Show plot --------------------------------------------------------------
+os_cohort5
+
+```
+
+```{r}
+data03_efficacy_pfs <- data01_efficacy %>% 
+  mutate(
+    pfs_time = (pfs_date - c1d1_date + 1)/(365.25/12)
+  ) %>% 
+  rename(
+    event = pfs_event,
+    time = pfs_time
+  )
+
+survfit(Surv(time, event) ~ 1, data = data03_efficacy_pfs)
+# summary(survfit(Surv(time, event) ~ 1, data = data02_efficacy_os))
+```
+
+```{r}
+hr0 <- log(2)/2
+hrobs <- log(2)/8.9
+events <- 5
+
+pvalue <- pnorm(sqrt(events)*(log(hrobs)-log(hr0)))
+
+format(pvalue, scientific = FALSE)
+```
+
+```{r}
+### Plot ----------------------------------------------------------------------
+pfs_cohort5 <- ggsurvplot(
+  fit = survfit(Surv(time, event) ~ 1, data = data03_efficacy_pfs),
+  xlab = "Time since study treatment start date (months)", 
+  ylab = "Progression-Free Survival",
+  conf.int = FALSE,
+  conf.int.fill = "#123467",
+  conf.int.alpha = c(0.15),
+  surv.median.line = "hv",
+  xlim = c(0,21.9),
+  ylim = c(0,1.009),
+  censor.size = 3.5,
+  size = 1,
+  break.time.by = 3,
+  axes.offset = FALSE,
+  surv.scale = "percent",
+  break.y.by = 0.20,
+  risk.table = FALSE,
+  fontsize = 3,
+  ggtheme = theme_classic(),
+  palette = "#123467",
+  legend.labs = " ",
+  legend.title = "Cohort 5"
+)
+
+### Modify theme --------------------------------------------------------------
+pfs_cohort5 <- customize_labels(
+  pfs_cohort5,
+  font.title     = c(14, "bold",  "#0a0908"),
+  font.caption   = c(12, "plain", "#0a0908"),
+  font.x         = c(12, "bold",  "#0a0908"),          
+  font.y         = c(12, "bold",  "#0a0908"),      
+  font.xtickslab = c(8,  "plain", "#0a0908"),
+  font.ytickslab = c(8,  "plain", "#0a0908")
+)
+
+grid.draw.ggsurvplot <- function(x){
+  survminer:::print.ggsurvplot(x, newpage = FALSE)
+}
+
+### Add vertical dash line ----------------------------------------------------
+pfs_cohort5$plot <- pfs_cohort5$plot + geom_vline(
+  xintercept = 36, linetype = "longdash"
+  )
+
+caption1 <- paste(strwrap(
+  "Median PFS rate: 8.9
+  (95% CI: 4.9-NA)
+  Events: 5/7", 23), collapse = "\n"
+  )
+
+pfs_cohort5$plot <- pfs_cohort5$plot + annotate(
+  "text", x = 4.5, y = 0.2,
+  label = caption1,
+  cex = 3.5, vjust = "center", hjust = "center", fontface = 20
+  )
+
+### Save plot ---------------------------------------------------------------
+# ggsave(
+#   here("output/DEBBRAH_Figure2_PFS_cohort5_2023-06-01.png"),
+#   pfs_cohort5,
+#   width = 24,
+#   height = 10,
+#   units = "cm",
+#   dpi = 300
+#   )
+
+### Show plot --------------------------------------------------------------
+pfs_cohort5
+```
+
+```{r}
+data04_efficacy_pfs_week <- data01_efficacy %>% 
+  mutate(
+    pfs_time = (pfs_date - c1d1_date + 1)/(365.25/52)
+  ) %>% 
+  rename(
+    event = pfs_event,
+    time = pfs_time
+  )
+
+summary(survfit(Surv(time, event) ~ 1, data = data04_efficacy_pfs_week), time = 16)
+summary(survfit(Surv(time, event) ~ 1, data = data04_efficacy_pfs_week), time = 24)
+```
+
+```{r}
+### Plot ----------------------------------------------------------------------
+pfs_w16__24_cohort5 <- ggsurvplot(
+  fit = survfit(Surv(time, event) ~ 1, data = data03_efficacy_pfs),
+  xlab = "Time since study treatment start date (months)", 
+  ylab = "Progression-Free Survival",
+  conf.int = FALSE,
+  conf.int.fill = "#123467",
+  conf.int.alpha = c(0.15),
+  surv.median.line = "hv",
+  xlim = c(0,21.9),
+  ylim = c(0,1.009),
+  censor.size = 3.5,
+  size = 1,
+  break.time.by = 3,
+  axes.offset = FALSE,
+  surv.scale = "percent",
+  break.y.by = 0.20,
+  risk.table = FALSE,
+  fontsize = 3,
+  ggtheme = theme_classic(),
+  palette = "#123467",
+  legend.labs = " ",
+  legend.title = "Cohort 5"
+)
+
+### Modify theme --------------------------------------------------------------
+pfs_w16__24_cohort5 <- customize_labels(
+  pfs_w16__24_cohort5,
+  font.title     = c(14, "bold",  "#0a0908"),
+  font.caption   = c(12, "plain", "#0a0908"),
+  font.x         = c(12, "bold",  "#0a0908"),          
+  font.y         = c(12, "bold",  "#0a0908"),      
+  font.xtickslab = c(8,  "plain", "#0a0908"),
+  font.ytickslab = c(8,  "plain", "#0a0908")
+)
+
+grid.draw.ggsurvplot <- function(x){
+  survminer:::print.ggsurvplot(x, newpage = FALSE)
+}
+
+### Add vertical dash line ----------------------------------------------------
+pfs_w16__24_cohort5$plot <- pfs_w16__24_cohort5$plot + geom_vline(
+  xintercept = 36, linetype = "longdash"
+  )
+
+caption1 <- paste(strwrap(
+  "Median PFS rate: 8.9
+  (95% CI: 4.9-NA)
+  Events: 5/7", 23), collapse = "\n"
+  )
+
+caption2 <- paste(strwrap(
+  "PFS rate at 16 weeks: 85.7%
+  (95% CI: 63.3-100)
+  Events: 1/7", 32), collapse = "\n"
+  )
+
+caption3 <- paste(strwrap(
+  "PFS rate at 24 weeks: 71.4%
+  (95% CI: 44.7-100)
+  Events: 2/7", 32), collapse = "\n"
+  )
+
+pfs_w16__24_cohort5$plot <- pfs_w16__24_cohort5$plot + annotate(
+  "text", x = 4.5, y = 0.2,
+  label = caption1,
+  cex = 3.5, vjust = "center", hjust = "center", fontface = 20
+  )
+
+pfs_w16__24_cohort5$plot <- pfs_w16__24_cohort5$plot + annotate(
+  "text", x = 15, y = 0.90,
+  label = caption2,
+  cex = 3.5, vjust = "left", hjust = "left", fontface = 20
+  )
+
+pfs_w16__24_cohort5$plot <- pfs_w16__24_cohort5$plot + annotate(
+  "text", x = 15, y = 0.75,
+  label = caption3,
+  cex = 3.5, vjust = "left", hjust = "left", fontface = 20
+  )
+
+### Save plot ---------------------------------------------------------------
+# ggsave(
+#   here("output/DEBBRAH_Figure3_PFS_weeks16-24_cohort5_2023-06-01.png"),
+#   pfs_w16__24_cohort5,
+#   width = 24,
+#   height = 10,
+#   units = "cm",
+#   dpi = 300
+#   )
+
+### Show plot --------------------------------------------------------------
+pfs_w16__24_cohort5
+```
+
+# Clinical Benefit Rate for patients with measurable intracranial lesions at baseline
+
+```{r}
+### CBR cohort 5 ---------------
+x = 3     # Number of successes (i.e, patients with CBR)
+n = 4     # Total n
+binom.test(x, n, p = 0.05,
+           alternative = "two.sided",
+           conf.level = 0.95)
+```
+
+# Clinical Benefit Rate for patients with measurable disease at baseline (both intra- and extracranial lesions)
+
+```{r}
+### CBR cohort 5 ---------------
+x = 5     # Number of successes (i.e, patients with CBR)
+n = 7     # Total n
+binom.test(x, n, p = 0.95,
+           alternative = "two.sided",
+           conf.level = 0.95)
+```
+

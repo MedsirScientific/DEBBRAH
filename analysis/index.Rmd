@@ -8,4 +8,12 @@ editor_options:
   chunk_output_type: console
 ---
 
-Welcome to my research website.
+This is the index page of the online repository for the DEBBRAH study. Here is a list of work packages:
+
+* [QA of tumor assessments prior to San Antonio Breast Cancer Symposium 2023](WP1_QA_tumor-assessments_2023-05-11.html)
+
+* [Swimmer plot of the time course of the disease of each patient](WP2_disease-timecourse_2023-05-23.html)
+
+* [Line plot of prior lines for advanced/metastatic disease](WP3_prior-lines-ABC_2023-05-30.html)
+
+* [Statistical Analysis of efficacy endpoints for cohort 5](WP4_efficacy_2023-06-01.html)

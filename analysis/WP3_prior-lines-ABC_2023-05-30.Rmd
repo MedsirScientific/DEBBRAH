@@ -1,0 +1,845 @@
+---
+title: "DEBBRAH | Line plot of prior lines for advanced/metastatic disease"
+author: "Daniel Alcala"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: html_document
+---
+
+```{r, include = FALSE}
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(janitor)
+library(lubridate)
+library(here)
+library(cowplot)
+library(lares)
+
+here("WP3_prior-lines-ABC_2023-05-30.Rmd")
+```
+
+# Patient 0102-001
+
+```{r}
+plot_timeline_0102001 <- function(event, start, end = start + 1, label = NA, group = NA,
+                           title = "Prior treatment lines for advanced disease", subtitle = "Patient 0102-001",
+                           size = 7, colour = "orange", save = FALSE, subdir = NA) {
+  df <- data.frame(
+    Role = as.character(event), Place = as.character(label),
+    Start = lubridate::date(start), End = lubridate::date(end),
+    Type = group
+  )
+  cvlong <- data.frame(pos = rep(
+    as.numeric(rownames(df)),
+    2
+  ), name = rep(as.character(df$Role), 2), type = rep(factor(df$Type,
+    ordered = TRUE
+  ), 2), where = rep(
+    as.character(df$Place),
+    2
+  ), value = c(df$Start, df$End), label_pos = rep(df$Start +
+    floor((df$End - df$Start) / 2), 2))
+  maxdate <- max(df$End)
+  p <- ggplot(cvlong, aes(
+    x = value, y = reorder(name, -pos),
+    label = where, group = pos
+  )) + labs(
+    title = title,
+    subtitle = subtitle, x = NULL, y = NULL, colour = NULL
+  ) +
+    theme(panel.background = element_rect(
+      fill = "white",
+      colour = NA
+    ), axis.ticks = element_blank(), panel.grid.major.x = element_line(
+      size = 0.25,
+      colour = "grey80"
+    ))
+  if (!is.na(cvlong$type)[1] | length(unique(cvlong$type)) >
+    1) {
+    p <- p + geom_line(aes(color = type), size = size) +
+      facet_grid(type ~ ., scales = "free", space = "free") +
+      guides(colour = FALSE) +
+      scale_colour_hue()
+  }
+  else {
+    p <- p + geom_line(size = size, colour = colour)
+  }
+  p <- p + geom_label(aes(x = label_pos),
+    colour = "black",
+    size = 2, alpha = 0.7
+  )
+  if (save) {
+    file_name <- "cv_timeline.png"
+    if (!is.na(subdir)) {
+      dir.create(file.path(getwd(), subdir), recursive = T)
+      file_name <- paste(subdir, file_name, sep = "/")
+    }
+    p <- p + ggsave(file_name, width = 8, height = 6)
+    message(paste("Saved plot as", file_name))
+  }
+  return(p)
+}
+
+order <- c("Role", "Place", "Type", "Start", "End")
+today <- as.character(Sys.Date())
+
+### Edit from here ###
+cv <- data.frame(rbind(
+  c("Palbociclib",           "Line 1", "Advanced disease", "2019-03-01", "2019-05-19"),
+  c("Letrozole",             "Line 1", "Advanced disease", "2019-03-01", "2019-05-16"),
+  c("Capecitabine",          "Line 2", "Advanced disease", "2019-05-14", "2019-11-28"),
+  c("Eribulin",              "Line 3", "Advanced disease", "2020-01-08", "2020-09-08"),
+  c("Irinotecan liposomal",  "Line 4", "Advanced disease", "2020-09-24", "2020-10-28"),
+  c("Etoposide",             "Line 5", "Advanced disease", "2020-11-25", "2021-06-26"),
+  c("Carboplatin",           "Line 6", "Advanced disease", "2021-06-30", "2021-07-21"),
+  c("Gemcitabine",           "Line 6", "Advanced disease", "2021-06-30", "2021-07-21")
+))
+
+colnames(cv) <- order
+colour <- c("red", "blue", "green")
+cv$Type <- factor(cv$Type, levels = c("Neoadjuvant", "Adjuvant", "Advanced disease"))
+
+plot_0102001 <- plot_timeline_0102001(
+  event = cv$Role,
+  start = cv$Start,
+  end =   cv$End,
+  label = cv$Place,
+  group = cv$Type,
+  save =  FALSE
+)
+
+plot_0102001 <- plot_0102001 + 
+  geom_vline(
+    xintercept = as.numeric(as.Date("2019-05-10")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = as.numeric(as.Date("2019-12-18")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = as.numeric(as.Date("2020-09-10")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = as.numeric(as.Date("2020-11-10")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = as.numeric(as.Date("2021-06-07")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+  labs(title = "Prior treatment lines for advanced disease",
+       subtitle = "Patient 0102-001")
+
+# ggsave(
+#   "DEBBRAH_0102-001_prior-lines_2023-05-30.png",
+#   plot_0102001,
+#   width = 24,
+#   height = 12,
+#   units = "cm",
+#   dpi = 300
+#   )
+
+plot_0102001
+```
+
+# Patient 0109-006
+
+```{r}
+plot_timeline_0109006 <- function(event, start, end = start + 1, label = NA, group = NA,
+                           title = "Prior treatment lines for advanced disease", subtitle = "Patient 0109-006",
+                           size = 7, colour = "orange", save = FALSE, subdir = NA) {
+  df <- data.frame(
+    Role = as.character(event), Place = as.character(label),
+    Start = lubridate::date(start), End = lubridate::date(end),
+    Type = group
+  )
+  cvlong <- data.frame(pos = rep(
+    as.numeric(rownames(df)),
+    2
+  ), name = rep(as.character(df$Role), 2), type = rep(factor(df$Type,
+    ordered = TRUE
+  ), 2), where = rep(
+    as.character(df$Place),
+    2
+  ), value = c(df$Start, df$End), label_pos = rep(df$Start +
+    floor((df$End - df$Start) / 2), 2))
+  maxdate <- max(df$End)
+  p <- ggplot(cvlong, aes(
+    x = value, y = reorder(name, -pos),
+    label = where, group = pos
+  )) + labs(
+    title = title,
+    subtitle = subtitle, x = NULL, y = NULL, colour = NULL
+  ) +
+    theme(panel.background = element_rect(
+      fill = "white",
+      colour = NA
+    ), axis.ticks = element_blank(), panel.grid.major.x = element_line(
+      size = 0.25,
+      colour = "grey80"
+    ))
+  if (!is.na(cvlong$type)[1] | length(unique(cvlong$type)) >
+    1) {
+    p <- p + geom_line(aes(color = type), size = size) +
+      facet_grid(type ~ ., scales = "free", space = "free") +
+      guides(colour = FALSE) +
+      scale_colour_hue()
+  }
+  else {
+    p <- p + geom_line(size = size, colour = colour)
+  }
+  p <- p + geom_label(aes(x = label_pos),
+    colour = "black",
+    size = 2, alpha = 0.7
+  )
+  if (save) {
+    file_name <- "cv_timeline.png"
+    if (!is.na(subdir)) {
+      dir.create(file.path(getwd(), subdir), recursive = T)
+      file_name <- paste(subdir, file_name, sep = "/")
+    }
+    p <- p + ggsave(file_name, width = 8, height = 6)
+    message(paste("Saved plot as", file_name))
+  }
+  return(p)
+}
+
+order <- c("Role", "Place", "Type", "Start", "End")
+today <- as.character(Sys.Date())
+
+### Edit from here ###
+cv <- data.frame(rbind(
+  c("Capecitabine",       "Line 1", "Advanced disease", "2020-12-15", "2021-03-11"),
+  c("Cyclophosphamide",   "Line 1", "Advanced disease", "2020-12-15", "2021-03-11"),
+  c("Methotrexate",       "Line 1", "Advanced disease", "2020-12-15", "2021-03-11")
+))
+
+colnames(cv) <- order
+colour <- c("red", "blue", "green")
+cv$Type <- factor(cv$Type, levels = c("Neoadjuvant", "Adjuvant", "Advanced disease"))
+
+plot_0109006 <- plot_timeline_0109006(
+  event = cv$Role,
+  start = cv$Start,
+  end =   cv$End,
+  label = cv$Place,
+  group = cv$Type,
+  save =  FALSE
+)
+
+plot_0109006 <- plot_0109006 + 
+  geom_vline(
+    xintercept = as.numeric(as.Date("2021-03-11")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+  labs(title = "Prior treatment lines for advanced disease",
+       subtitle = "Patient 0109-006")
+
+# ggsave(
+#   "DEBBRAH_0109-006_prior-lines_2023-05-30.png",
+#   plot_0109006,
+#   width = 24,
+#   height = 12,
+#   units = "cm",
+#   dpi = 300
+#   )
+
+plot_0109006
+```
+
+# Patient 0116-004
+
+```{r}
+plot_timeline_0116004 <- function(event, start, end = start + 1, label = NA, group = NA,
+                           title = "Prior treatment lines for advanced disease", subtitle = "Patient 0116-004",
+                           size = 7, colour = "orange", save = FALSE, subdir = NA) {
+  df <- data.frame(
+    Role = as.character(event), Place = as.character(label),
+    Start = lubridate::date(start), End = lubridate::date(end),
+    Type = group
+  )
+  cvlong <- data.frame(pos = rep(
+    as.numeric(rownames(df)),
+    2
+  ), name = rep(as.character(df$Role), 2), type = rep(factor(df$Type,
+    ordered = TRUE
+  ), 2), where = rep(
+    as.character(df$Place),
+    2
+  ), value = c(df$Start, df$End), label_pos = rep(df$Start +
+    floor((df$End - df$Start) / 2), 2))
+  maxdate <- max(df$End)
+  p <- ggplot(cvlong, aes(
+    x = value, y = reorder(name, -pos),
+    label = where, group = pos
+  )) + labs(
+    title = title,
+    subtitle = subtitle, x = NULL, y = NULL, colour = NULL
+  ) +
+    theme(panel.background = element_rect(
+      fill = "white",
+      colour = NA
+    ), axis.ticks = element_blank(), panel.grid.major.x = element_line(
+      size = 0.25,
+      colour = "grey80"
+    ))
+  if (!is.na(cvlong$type)[1] | length(unique(cvlong$type)) >
+    1) {
+    p <- p + geom_line(aes(color = type), size = size) +
+      facet_grid(type ~ ., scales = "free", space = "free") +
+      guides(colour = FALSE) +
+      scale_colour_hue()
+  }
+  else {
+    p <- p + geom_line(size = size, colour = colour)
+  }
+  p <- p + geom_label(aes(x = label_pos),
+    colour = "black",
+    size = 2, alpha = 0.7
+  )
+  if (save) {
+    file_name <- "cv_timeline.png"
+    if (!is.na(subdir)) {
+      dir.create(file.path(getwd(), subdir), recursive = T)
+      file_name <- paste(subdir, file_name, sep = "/")
+    }
+    p <- p + ggsave(file_name, width = 8, height = 6)
+    message(paste("Saved plot as", file_name))
+  }
+  return(p)
+}
+
+order <- c("Role", "Place", "Type", "Start", "End")
+today <- as.character(Sys.Date())
+
+### Edit from here ###
+cv <- data.frame(rbind(
+  c("Paclitaxel",             "Line 1", "Advanced disease", "2020-10-15", "2021-06-15"),
+  c("Pertuzumab",             "Line 1", "Advanced disease", "2020-10-15", "2021-06-15"),
+  c("Trastuzumab",            "Line 1", "Advanced disease", "2020-10-15", "2021-06-15"),
+  c("Trastuzumab emtansine",  "Line 2", "Advanced disease", "2021-07-15", "2021-09-15")
+))
+
+colnames(cv) <- order
+colour <- c("red", "blue", "green")
+cv$Type <- factor(cv$Type, levels = c("Neoadjuvant", "Adjuvant", "Advanced disease"))
+
+plot_0116004 <- plot_timeline_0116004(
+  event = cv$Role,
+  start = cv$Start,
+  end =   cv$End,
+  label = cv$Place,
+  group = cv$Type,
+  save =  FALSE
+)
+
+plot_0116004 <- plot_0116004 + 
+    geom_vline(
+    xintercept = as.numeric(as.Date("2021-06-15")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+    geom_vline(
+    xintercept = as.numeric(as.Date("2021-09-15")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+  labs(title = "Prior treatment lines for advanced disease",
+       subtitle = "Patient 0116-004")
+
+# ggsave(
+#   "DEBBRAH_0116-004_prior-lines_2023-05-30.png",
+#   plot_0116004,
+#   width = 24,
+#   height = 12,
+#   units = "cm",
+#   dpi = 300
+#   )
+
+plot_0116004
+```
+
+# Patient 0120-007
+
+```{r}
+plot_timeline_0120007 <- function(event, start, end = start + 1, label = NA, group = NA,
+                           title = "Prior treatment lines for advanced disease", subtitle = "Patient 0120-007",
+                           size = 7, colour = "orange", save = FALSE, subdir = NA) {
+  df <- data.frame(
+    Role = as.character(event), Place = as.character(label),
+    Start = lubridate::date(start), End = lubridate::date(end),
+    Type = group
+  )
+  cvlong <- data.frame(pos = rep(
+    as.numeric(rownames(df)),
+    2
+  ), name = rep(as.character(df$Role), 2), type = rep(factor(df$Type,
+    ordered = TRUE
+  ), 2), where = rep(
+    as.character(df$Place),
+    2
+  ), value = c(df$Start, df$End), label_pos = rep(df$Start +
+    floor((df$End - df$Start) / 2), 2))
+  maxdate <- max(df$End)
+  p <- ggplot(cvlong, aes(
+    x = value, y = reorder(name, -pos),
+    label = where, group = pos
+  )) + labs(
+    title = title,
+    subtitle = subtitle, x = NULL, y = NULL, colour = NULL
+  ) +
+    theme(panel.background = element_rect(
+      fill = "white",
+      colour = NA
+    ), axis.ticks = element_blank(), panel.grid.major.x = element_line(
+      size = 0.25,
+      colour = "grey80"
+    ))
+  if (!is.na(cvlong$type)[1] | length(unique(cvlong$type)) >
+    1) {
+    p <- p + geom_line(aes(color = type), size = size) +
+      facet_grid(type ~ ., scales = "free", space = "free") +
+      guides(colour = FALSE) +
+      scale_colour_hue()
+  }
+  else {
+    p <- p + geom_line(size = size, colour = colour)
+  }
+  p <- p + geom_label(aes(x = label_pos),
+    colour = "black",
+    size = 2, alpha = 0.7
+  )
+  if (save) {
+    file_name <- "cv_timeline.png"
+    if (!is.na(subdir)) {
+      dir.create(file.path(getwd(), subdir), recursive = T)
+      file_name <- paste(subdir, file_name, sep = "/")
+    }
+    p <- p + ggsave(file_name, width = 8, height = 6)
+    message(paste("Saved plot as", file_name))
+  }
+  return(p)
+}
+
+order <- c("Role", "Place", "Type", "Start", "End")
+today <- as.character(Sys.Date())
+
+### Edit from here ###
+cv <- data.frame(rbind(
+  c("Paclitaxel",             "Line 1", "Advanced disease", "2019-08-09", "2019-11-25"),
+  c("Pertuzumab",             "Line 1", "Advanced disease", "2019-08-09", "2019-11-25"),
+  c("Trastuzumab",            "Line 1", "Advanced disease", "2019-08-09", "2019-11-25"),
+  c("Pertuzumab",             "Line 1", "Advanced disease", "2019-12-16", "2020-02-24"),
+  c("Trastuzumab",            "Line 1", "Advanced disease", "2019-12-16", "2020-02-24"),
+  c("Trastuzumab emtansine",  "Line 2", "Advanced disease", "2020-04-17", "2021-07-22")
+))
+
+colnames(cv) <- order
+colour <- c("red", "blue", "green")
+cv$Type <- factor(cv$Type, levels = c("Neoadjuvant", "Adjuvant", "Advanced disease"))
+
+plot_0120007 <- plot_timeline_0120007(
+  event = cv$Role,
+  start = cv$Start,
+  end =   cv$End,
+  label = cv$Place,
+  group = cv$Type,
+  save =  FALSE
+)
+
+plot_0120007 <- plot_0120007 + 
+    geom_vline(
+    xintercept = as.numeric(as.Date("2021-06-23")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+  labs(title = "Prior treatment lines for advanced disease",
+       subtitle = "Patient 0120-007")
+
+# ggsave(
+#   "DEBBRAH_0120-007_prior-lines_2023-05-30.png",
+#   plot_0120007,
+#   width = 24,
+#   height = 12,
+#   units = "cm",
+#   dpi = 300
+#   )
+
+plot_0120007
+```
+
+# Patient 0121-006
+
+```{r}
+plot_timeline_0121006 <- function(event, start, end = start + 1, label = NA, group = NA,
+                           title = "Prior treatment lines for advanced disease", subtitle = "Patient 0121-006",
+                           size = 7, colour = "orange", save = FALSE, subdir = NA) {
+  df <- data.frame(
+    Role = as.character(event), Place = as.character(label),
+    Start = lubridate::date(start), End = lubridate::date(end),
+    Type = group
+  )
+  cvlong <- data.frame(pos = rep(
+    as.numeric(rownames(df)),
+    2
+  ), name = rep(as.character(df$Role), 2), type = rep(factor(df$Type,
+    ordered = TRUE
+  ), 2), where = rep(
+    as.character(df$Place),
+    2
+  ), value = c(df$Start, df$End), label_pos = rep(df$Start +
+    floor((df$End - df$Start) / 2), 2))
+  maxdate <- max(df$End)
+  p <- ggplot(cvlong, aes(
+    x = value, y = reorder(name, -pos),
+    label = where, group = pos
+  )) + labs(
+    title = title,
+    subtitle = subtitle, x = NULL, y = NULL, colour = NULL
+  ) +
+    theme(panel.background = element_rect(
+      fill = "white",
+      colour = NA
+    ), axis.ticks = element_blank(), panel.grid.major.x = element_line(
+      size = 0.25,
+      colour = "grey80"
+    ))
+  if (!is.na(cvlong$type)[1] | length(unique(cvlong$type)) >
+    1) {
+    p <- p + geom_line(aes(color = type), size = size) +
+      facet_grid(type ~ ., scales = "free", space = "free") +
+      guides(colour = FALSE) +
+      scale_colour_hue()
+  }
+  else {
+    p <- p + geom_line(size = size, colour = colour)
+  }
+  p <- p + geom_label(aes(x = label_pos),
+    colour = "black",
+    size = 2, alpha = 0.7
+  )
+  if (save) {
+    file_name <- "cv_timeline.png"
+    if (!is.na(subdir)) {
+      dir.create(file.path(getwd(), subdir), recursive = T)
+      file_name <- paste(subdir, file_name, sep = "/")
+    }
+    p <- p + ggsave(file_name, width = 8, height = 6)
+    message(paste("Saved plot as", file_name))
+  }
+  return(p)
+}
+
+order <- c("Role", "Place", "Type", "Start", "End")
+today <- as.character(Sys.Date())
+
+### Edit from here ###
+cv <- data.frame(rbind(
+  c("Citarabina",            "Line 1", "Advanced disease", "2017-03-08", "2017-07-15"),
+  c("Actocortina",           "Line 1", "Advanced disease", "2017-03-08", "2017-07-15"),
+  c("Lapatinib",             "Line 1", "Advanced disease", "2017-03-08", "2017-07-15"),
+  c("Methotrexate",          "Line 1", "Advanced disease", "2017-03-08", "2017-07-15"),
+  c("Trastuzumab",           "Line 1", "Advanced disease", "2017-03-08", "2017-07-15"),
+  c("Capecitabine",          "Line 2", "Advanced disease", "2020-02-11", "2020-03-18"),
+  c("Hydrocortisone",        "Line 2", "Advanced disease", "2020-02-11", "2020-03-18"),
+  c("Methotrexate",          "Line 2", "Advanced disease", "2020-02-11", "2020-03-18"),
+  c("Trastuzumab",           "Line 2", "Advanced disease", "2020-02-11", "2020-03-18"),
+  c("Methotrexate",          "Line 3", "Advanced disease", "2020-05-29", "2020-10-28"),
+  c("Citarabina",            "Line 3", "Advanced disease", "2020-05-29", "2020-10-28"),
+  c("Pertuzumab",            "Line 3", "Advanced disease", "2020-05-29", "2020-10-28"),
+  c("Trastuzumab",           "Line 3", "Advanced disease", "2020-05-29", "2020-10-28"),
+  c("Paclitaxel",            "Line 3", "Advanced disease", "2020-06-29", "2020-10-06"),
+  c("Trastuzumab emtansine", "Line 4", "Advanced disease", "2021-03-15", "2021-05-03")
+))
+
+colnames(cv) <- order
+colour <- c("red", "blue", "green")
+cv$Type <- factor(cv$Type, levels = c("Neoadjuvant", "Adjuvant", "Advanced disease"))
+
+plot_0121006 <- plot_timeline_0121006(
+  event = cv$Role,
+  start = cv$Start,
+  end =   cv$End,
+  label = cv$Place,
+  group = cv$Type,
+  save =  FALSE
+)
+
+plot_0121006 <- plot_0121006 + 
+  labs(title = "Prior treatment lines for advanced disease",
+       subtitle = "Patient 0121-006")
+
+# ggsave(
+#   "DEBBRAH_0121-006_prior-lines_2023-05-30.png",
+#   plot_0121006,
+#   width = 24,
+#   height = 12,
+#   units = "cm",
+#   dpi = 300
+#   )
+
+plot_0121006
+```
+
+# Patient 0124-004
+
+```{r}
+plot_timeline_0124004 <- function(event, start, end = start + 1, label = NA, group = NA,
+                           title = "Prior treatment lines for advanced disease", subtitle = "Patient 0124-004",
+                           size = 7, colour = "orange", save = FALSE, subdir = NA) {
+  df <- data.frame(
+    Role = as.character(event), Place = as.character(label),
+    Start = lubridate::date(start), End = lubridate::date(end),
+    Type = group
+  )
+  cvlong <- data.frame(pos = rep(
+    as.numeric(rownames(df)),
+    2
+  ), name = rep(as.character(df$Role), 2), type = rep(factor(df$Type,
+    ordered = TRUE
+  ), 2), where = rep(
+    as.character(df$Place),
+    2
+  ), value = c(df$Start, df$End), label_pos = rep(df$Start +
+    floor((df$End - df$Start) / 2), 2))
+  maxdate <- max(df$End)
+  p <- ggplot(cvlong, aes(
+    x = value, y = reorder(name, -pos),
+    label = where, group = pos
+  )) + labs(
+    title = title,
+    subtitle = subtitle, x = NULL, y = NULL, colour = NULL
+  ) +
+    theme(panel.background = element_rect(
+      fill = "white",
+      colour = NA
+    ), axis.ticks = element_blank(), panel.grid.major.x = element_line(
+      size = 0.25,
+      colour = "grey80"
+    ))
+  if (!is.na(cvlong$type)[1] | length(unique(cvlong$type)) >
+    1) {
+    p <- p + geom_line(aes(color = type), size = size) +
+      facet_grid(type ~ ., scales = "free", space = "free") +
+      guides(colour = FALSE) +
+      scale_colour_hue()
+  }
+  else {
+    p <- p + geom_line(size = size, colour = colour)
+  }
+  p <- p + geom_label(aes(x = label_pos),
+    colour = "black",
+    size = 2, alpha = 0.7
+  )
+  if (save) {
+    file_name <- "cv_timeline.png"
+    if (!is.na(subdir)) {
+      dir.create(file.path(getwd(), subdir), recursive = T)
+      file_name <- paste(subdir, file_name, sep = "/")
+    }
+    p <- p + ggsave(file_name, width = 8, height = 6)
+    message(paste("Saved plot as", file_name))
+  }
+  return(p)
+}
+
+order <- c("Role", "Place", "Type", "Start", "End")
+today <- as.character(Sys.Date())
+
+### Edit from here ###
+cv <- data.frame(rbind(
+  c("Letrozole",        "Line 1", "Advanced disease", "2015-07-15", "2016-12-15"),
+  c("GDC-0927",         "Line 2", "Advanced disease", "2016-12-15", "2017-06-15"),
+  c("Fulvestrant",      "Line 3", "Advanced disease", "2017-06-15", "2018-05-15"),
+  c("Palbociclib",      "Line 3", "Advanced disease", "2017-06-15", "2018-05-15"),
+  c("Capecitabine",     "Line 4", "Advanced disease", "2018-05-15", "2020-03-15"),
+  c("Bevacizumab",      "Line 4", "Advanced disease", "2018-05-15", "2020-03-15"),
+  c("Anastrozole",      "Line 5", "Advanced disease", "2020-04-15", "2020-11-15"),
+  c("Alpelisib",        "Line 5", "Advanced disease", "2020-04-15", "2020-11-15"),
+  c("Tamoxifen",        "Line 6", "Advanced disease", "2020-11-15", "2021-05-15"),
+  c("Eribulin",         "Line 7", "Advanced disease", "2021-05-15", "2021-09-15"),
+  c("Capecitabine",     "Line 8", "Advanced disease", "2021-09-15", "2021-11-09"),
+  c("Cyclophosphamide", "Line 8", "Advanced disease", "2021-09-15", "2021-11-09"),
+  c("Methotrexate",     "Line 8", "Advanced disease", "2021-09-15", "2021-11-09")
+))
+
+colnames(cv) <- order
+colour <- c("red", "blue", "green")
+cv$Type <- factor(cv$Type, levels = c("Neoadjuvant", "Adjuvant", "Advanced disease"))
+
+plot_0124004 <- plot_timeline_0124004(
+  event = cv$Role,
+  start = cv$Start,
+  end =   cv$End,
+  label = cv$Place,
+  group = cv$Type,
+  save =  FALSE
+)
+
+plot_0124004 <- plot_0124004 + 
+  geom_vline(
+    xintercept = as.numeric(as.Date("2016-12-15")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+    geom_vline(
+    xintercept = as.numeric(as.Date("2017-06-15")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+    geom_vline(
+    xintercept = as.numeric(as.Date("2018-05-15")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+    geom_vline(
+    xintercept = as.numeric(as.Date("2020-03-15")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+    geom_vline(
+    xintercept = as.numeric(as.Date("2020-11-15")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+    geom_vline(
+    xintercept = as.numeric(as.Date("2021-05-15")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+    geom_vline(
+    xintercept = as.numeric(as.Date("2021-09-15")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+    geom_vline(
+    xintercept = as.numeric(as.Date("2021-11-09")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+  labs(title = "Prior treatment lines for advanced disease",
+       subtitle = "Patient 0124-004")
+
+# ggsave(
+#   "DEBBRAH_0124-004_prior-lines_2023-05-30.png",
+#   plot_0124004,
+#   width = 24,
+#   height = 12,
+#   units = "cm",
+#   dpi = 300
+#   )
+
+plot_0124004
+```
+
+# Patient 0124-006
+
+```{r}
+plot_timeline_0124006 <- function(event, start, end = start + 1, label = NA, group = NA,
+                           title = "Prior treatment lines for advanced disease", subtitle = "Patient 0124-006",
+                           size = 7, colour = "orange", save = FALSE, subdir = NA) {
+  df <- data.frame(
+    Role = as.character(event), Place = as.character(label),
+    Start = lubridate::date(start), End = lubridate::date(end),
+    Type = group
+  )
+  cvlong <- data.frame(pos = rep(
+    as.numeric(rownames(df)),
+    2
+  ), name = rep(as.character(df$Role), 2), type = rep(factor(df$Type,
+    ordered = TRUE
+  ), 2), where = rep(
+    as.character(df$Place),
+    2
+  ), value = c(df$Start, df$End), label_pos = rep(df$Start +
+    floor((df$End - df$Start) / 2), 2))
+  maxdate <- max(df$End)
+  p <- ggplot(cvlong, aes(
+    x = value, y = reorder(name, -pos),
+    label = where, group = pos
+  )) + labs(
+    title = title,
+    subtitle = subtitle, x = NULL, y = NULL, colour = NULL
+  ) +
+    theme(panel.background = element_rect(
+      fill = "white",
+      colour = NA
+    ), axis.ticks = element_blank(), panel.grid.major.x = element_line(
+      size = 0.25,
+      colour = "grey80"
+    ))
+  if (!is.na(cvlong$type)[1] | length(unique(cvlong$type)) >
+    1) {
+    p <- p + geom_line(aes(color = type), size = size) +
+      facet_grid(type ~ ., scales = "free", space = "free") +
+      guides(colour = FALSE) +
+      scale_colour_hue()
+  }
+  else {
+    p <- p + geom_line(size = size, colour = colour)
+  }
+  p <- p + geom_label(aes(x = label_pos),
+    colour = "black",
+    size = 2, alpha = 0.7
+  )
+  if (save) {
+    file_name <- "cv_timeline.png"
+    if (!is.na(subdir)) {
+      dir.create(file.path(getwd(), subdir), recursive = T)
+      file_name <- paste(subdir, file_name, sep = "/")
+    }
+    p <- p + ggsave(file_name, width = 8, height = 6)
+    message(paste("Saved plot as", file_name))
+  }
+  return(p)
+}
+
+order <- c("Role", "Place", "Type", "Start", "End")
+today <- as.character(Sys.Date())
+
+### Edit from here ###
+cv <- data.frame(rbind(
+  c("Fulvestrant",  "Line 1", "Advanced disease", "2019-11-15", "2021-01-15"),
+  c("Palbociclib",  "Line 1", "Advanced disease", "2019-11-15", "2021-01-15"),
+  c("Alpelisib",    "Line 2", "Advanced disease", "2021-01-15", "2021-08-15"),
+  c("Tamoxifen",    "Line 2", "Advanced disease", "2021-01-15", "2021-08-15"),
+  c("Paclitaxel",   "Line 3", "Advanced disease", "2021-08-15", "2022-01-15"),
+  c("Bevacizumab",  "Line 3", "Advanced disease", "2021-08-15", "2022-01-15"),
+  c("Capecitabine", "Line 4", "Advanced disease", "2022-01-15", "2022-03-14")
+))
+
+colnames(cv) <- order
+colour <- c("red", "blue", "green")
+cv$Type <- factor(cv$Type, levels = c("Neoadjuvant", "Adjuvant", "Advanced disease"))
+
+plot_0124006 <- plot_timeline_0124006(
+  event = cv$Role,
+  start = cv$Start,
+  end =   cv$End,
+  label = cv$Place,
+  group = cv$Type,
+  save =  FALSE
+)
+
+plot_0124006 <- plot_0124006 + 
+  geom_vline(
+    xintercept = as.numeric(as.Date("2021-01-15")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+    geom_vline(
+    xintercept = as.numeric(as.Date("2021-08-15")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+    geom_vline(
+    xintercept = as.numeric(as.Date("2022-01-15")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+    geom_vline(
+    xintercept = as.numeric(as.Date("2022-03-14")),
+    alpha = 0.8, linetype = "dashed"
+  ) +
+  labs(title = "Prior treatment lines for advanced disease",
+       subtitle = "Patient 0124-006")
+
+# ggsave(
+#   "DEBBRAH_0124-006_prior-lines_2023-05-30.png",
+#   plot_0124006,
+#   width = 24,
+#   height = 12,
+#   units = "cm",
+#   dpi = 300
+#   )
+
+plot_0124006
+```

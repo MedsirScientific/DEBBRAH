@@ -1,0 +1,269 @@
+---
+title: "DEBBRAH | QA of tumor assessments prior to San Antonio Breast Cancer Symposium 2023"
+author: "Daniel Alcala"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: html_document
+---
+
+```{r, include = FALSE}
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(janitor)
+library(lubridate)
+library(here)
+library(cowplot)
+
+here("WP1_QA_tumor-assessments_2023-05-11.Rmd")
+```
+
+This report presents the cleaning of tumour assessment data from the LUPER study. The ultimate goal is to obtain the number of patients who have experienced radiologically confirmed disease progression. However, the purpose of this preliminary analysis of radiological progressions is to detect anomalies or discrepancies in the tumour assessment data collected.
+
+Raw data from the eCRF was downloaded as of 2023-04-19 to perform these analyses.
+
+# Patient IDs (ITT population)
+
+First, we will obtain a list with the identifying codes of the patients included in the Intention-to-Treat (ITT) population.
+
+We will use the medication intake sheet (Cycles) to obtain the list of patients to be included included in the ITT:
+
+```{r, message = FALSE, warning = FALSE}
+data_00_patient_ids <- read_excel(
+  here("data/DEBBRAH_Cycles_2023_05_11.xlsx"),
+    sheet = "Cycles",
+    skip = 1) %>% 
+    clean_names() %>% 
+  # Extract data only from patients who took the study medication on C1D1.
+  filter(
+    event_num == 1,
+  trastuzumab_deruxtecan_administered == "Yes"
+    ) %>%
+  select(patient)
+
+rmarkdown::paged_table(data_00_patient_ids)
+```
+
+# Measurable lesions at baseline
+
+Data from tumour assessments need to be pulled from two different sources. On the one hand, we have the baseline tumour assessment included in the Screening sheet. On the other hand, we have the tumour assessment sheet itself, which collects all post-baseline assessments.
+
+In addition, not all patients had measurable lesions at baseline. Therefore, we need to collect data for both types of lesions. First, we extracted data from patients with measurable lesions at baseline:
+
+```{r}
+data_01a_baseline_target <- read_excel(
+    here("data/DEBBRAH_ICF Screening_2023_05_11.xlsx"),
+    sheet = "TARGET",
+    skip = 1) %>% 
+    clean_names() %>% 
+    # The variable "event_num" encodes the tumour assessment number in the post-baseline assessments.
+    # Create this variable and assign a 0 to mark this as the baseline assessment.
+    mutate(
+      event_num = 0
+    ) %>%
+    group_by(patient, event_num) %>%
+    # We collect the length of the longest diameter of each reported target (i.e., measurable) lesion individually.
+    # Calculate the sum of longest diameter of all lesions.
+    mutate(
+      sum_of_lesions = sum(longest_diameter_short_axis_mm)
+    ) %>%
+    # Since we now have the sum of longest diameters repeated as many times as there are measurable lesions, we can keep either any row
+    group_by(patient) %>%
+    filter(row_number() == 1) %>%
+    mutate(
+      evaluation_date = dmy(evaluation_date)
+    ) %>% 
+    # Create a dummy variable to code that the patient had measurable disease at baseline.
+    mutate(
+      baseline_target = 0
+    ) %>% 
+    select(
+        patient, event_num, baseline_target, evaluation_date, longest_diameter_short_axis_mm, sum_of_lesions
+        )
+
+data_01a_baseline_target <- merge(
+  data_00_patient_ids,
+  data_01a_baseline_target,
+  by = "patient",
+  all = FALSE
+)
+
+rmarkdown::paged_table(data_01a_baseline_target)
+```
+
+# Non-measurable lesions at baseline
+
+We then extract data from patients who had non-measurable lesions at baseline:
+
+```{r}
+data_01b_baseline_nontarget <- read_excel(
+    here("data/DEBBRAH_ICF Screening_2023_05_11.xlsx"),
+    sheet = "NON_TARGET",
+    skip = 1) %>% 
+    clean_names() %>% 
+    # The variable "event_num" encodes the tumour assessment number in the post-baseline assessments.
+    # Create this variable and assign a 0 to mark this as the baseline assessment.
+    mutate(
+      event_num = 0
+    ) %>%
+    # Since we only care about the number of patients with non-measurable disease at baseline, we can keep either any row
+    group_by(patient) %>%
+    filter(row_number() == 1) %>%
+    mutate(
+      evaluation_date = dmy(evaluation_date)
+    ) %>% 
+    filter(
+      non_target_lesion == "Yes"
+    ) %>% 
+    select(
+      patient, event_num, evaluation_date
+    )
+
+data_01b_baseline_nontarget <- merge(
+  data_00_patient_ids,
+  data_01b_baseline_nontarget,
+  by = "patient",
+  all = FALSE
+)
+
+rmarkdown::paged_table(data_01b_baseline_nontarget)
+```
+
+# Baseline tumour assessment
+
+Finally, we merge both datasets to generate a single list that states for each patient whether they had measurable lesions or non-measurable lesions only at baseline:
+
+```{r}
+data_01_baseline_all <- full_join(
+  data_01a_baseline_target,
+  data_01b_baseline_nontarget,
+  by = c("patient", "event_num")
+  ) %>%
+  # If a patient had measurable lesions at baseline, we want to keep that data.
+  # Only if there were no measurable lesions, we want to keep the tumour assessment date when the non-measurable lesions were detected.
+  mutate(
+    evaluation_date = if_else(
+      is.na(evaluation_date.x), evaluation_date.y, evaluation_date.x
+    )
+  ) %>%
+  # The following mutate() function creates a "baseline_nontarget" variable that codes 0 if the patient had no measurable lesions at baseline.
+  mutate(
+    baseline_nontarget = if_else(is.na(baseline_target) == 0, 1, 0),
+    baseline_nontarget = na_if(baseline_nontarget, 1)
+  ) %>% 
+  select(
+    patient, event_num, evaluation_date, baseline_target, sum_of_lesions, baseline_nontarget
+  )
+
+rmarkdown::paged_table(data_01_baseline_all)
+```
+
+# Measurable lesions post-baseline
+
+Next, we extract the results of the post-baseline tumour assessments:
+
+```{r}
+data_02a_postbaseline_target <- read_excel(
+    here("data/DEBBRAH_Tumor Assessment_2023_05_11.xlsx"),
+    sheet = "TARGET",
+    skip = 1) %>% 
+    clean_names() %>%
+    # We collect the length of the longest diameter of each reported target (i.e., measurable) lesion individually.
+    # Calculate the sum of longest diameter of all lesions for each tumour assessment.
+    group_by(patient, event_num) %>%
+    mutate(
+      sum_of_lesions = sum(longest_diameter_short_axis_mm)
+    ) %>%
+    # Since we now have the sum of longest diameters repeated as many times as there are measurable lesions, we can keep either any row
+    group_by(patient, event_num) %>%
+    filter(row_number() == 1) %>%
+    mutate(
+      evaluation_date = dmy(evaluation_date)
+    ) %>% 
+    select(
+      patient, event_num, evaluation_date, sum_of_lesions
+    )
+
+rmarkdown::paged_table(data_02a_postbaseline_target)
+```
+
+# Non-measurable lesions post-baseline
+
+```{r}
+data_02b_postbaseline_nontarget <- read_excel(
+    here("data/DEBBRAH_Tumor Assessment_2023_05_11.xlsx"),
+    sheet = "NON_TARGET",
+    skip = 1) %>% 
+    clean_names() %>%
+    # Since we now have the sum of longest diameters repeated as many times as there are measurable lesions, we can keep either any row
+    group_by(patient, event_num) %>%
+    filter(row_number() == 1) %>%
+    mutate(
+      evaluation_date = dmy(evaluation_date)
+    ) %>% 
+    select(
+      patient, event_num, evaluation_date
+    )
+
+rmarkdown::paged_table(data_02b_postbaseline_nontarget)
+```
+
+# Post-baseline tumour assessments
+
+```{r}
+data_02_postbaseline <- merge(
+  data_02a_postbaseline_target,
+  data_02b_postbaseline_nontarget,
+  by = c("patient", "event_num", "evaluation_date"),
+  all = TRUE
+)
+
+rmarkdown::paged_table(data_02_postbaseline)
+```
+
+# New lesions detected in post-baseline tumour assessments
+
+For a complete account of the data, we need to extract also the occurrence of new lesions from another sheet of the file with the post-baseline tumour assessments:
+
+```{r}
+data_03_new_lesions <- read_excel(
+    here("data/DEBBRAH_Tumor Assessment_2023_05_11.xlsx"),
+    sheet = "NEW_LESIONS",
+    skip = 1) %>% 
+    clean_names() %>% 
+    # Create a new variable that encodes whether the patient had a new lesion at any tumour assessment
+    mutate(
+      new_lesions = "Yes"
+    ) %>% 
+    mutate(
+      evaluation_date = dmy(evaluation_date)
+    ) %>% 
+    # Since the presentation of a single new lesion already implies disease progression, we only keep the record of one new lesion, regardless of which one.
+    group_by(patient) %>%
+    filter(row_number() == 1) %>% 
+    select(
+      patient, event_num, evaluation_date, new_lesions
+    )
+
+rmarkdown::paged_table(data_03_new_lesions)
+```
+
+# Overall Response in post-baseline tumour assessments by RANO-BM
+
+We want to incorporate the overall response of intracranial lesions according to RANO-BM in each tumour assessment into the final dataset:
+
+```{r}
+data_04a_recist <- read_excel(
+    here("data/DEBBRAH_Tumor Assessment_2023_05_11.xlsx"),
+    sheet = "Tumor Assessment",
+    skip = 1) %>% 
+    clean_names()
+
+# %>% 
+#     select(
+#       patient, event_num, target_lesions_response_10, non_target_lesions_response_11, overall_response_12
+#       )
+
+rmarkdown::paged_table(data_04a_recist)
+```
+
+

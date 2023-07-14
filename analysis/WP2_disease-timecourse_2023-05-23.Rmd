@@ -1,0 +1,156 @@
+---
+title: "DEBBRAH | Swimmer plot of the time course of the disease of each patient"
+author: "Daniel Alcala"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: html_document
+---
+
+```{r, include = FALSE}
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(janitor)
+library(lubridate)
+library(here)
+library(cowplot)
+
+here("WP2_disease-timecourse_2023-05-23.Rmd")
+```
+
+```{r}
+patient <- c("0102-001", "0109-006", "0116-004", "0120-007", "0121-006", "0124-004", "0124-006")
+treatment_start <- as.Date(c("2021-08-11", "2021-04-14", "2021-10-18", "2021-09-16", "2021-05-21", "2021-12-09", "2022-04-05"))
+treatment_end <- as.Date(c("2022-02-16", "2021-05-26", "2022-06-28", "2023-04-04", "2021-09-24", "2022-10-04", "2023-04-04"))
+disease_progression <- as.Date(c("2022-03-09", "2021-06-16", "2022-07-18", NA, "2021-10-15", "2022-10-25", NA))
+study_end <- as.Date(c("2022-06-15", "2021-06-29", "2023-01-10", "2023-04-04", "2021-11-08", "2023-01-17", "2023-04-04"))
+death <- as.Date(c("2022-06-15", "2021-06-29", "2023-01-10", NA, "2021-11-08", "2023-01-17", NA))
+
+# Convert lists to vectors
+patient <- unlist(patient)
+treatment_start <- unlist(treatment_start)
+treatment_end <- unlist(treatment_end)
+disease_progression <- unlist(disease_progression)
+study_end <- unlist(study_end)
+death <- unlist(death)
+
+# Create the dataframe
+data_01_swimmer <- data.frame(patient = patient,
+                     treatment_start = treatment_start,
+                     treatment_end = treatment_end,
+                     disease_progression = disease_progression,
+                     study_end = study_end,
+                     death = death)
+```
+
+```{r}
+# Get the earliest date across columns for each patient and make it a date column
+data_01_swimmer$earliest_date <- as.Date(apply(data_01_swimmer[, 2:6], 1, min, na.rm = TRUE))
+
+# Get the latest date across columns for each patient
+data_01_swimmer$latest_date <- as.Date(apply(data_01_swimmer[, 2:6], 1, max, na.rm = TRUE))
+
+# Create a row for each patient for each day from the earliest to the latest date
+data_02_swimmer_long <- data_01_swimmer %>%
+  rowwise() %>%
+  mutate(date = list(seq.Date(from = earliest_date, to = latest_date, by = "day"))) %>%
+  unnest(date)
+
+# Count the number of rows for each patient
+data_02_swimmer_long <- data_02_swimmer_long %>%
+  group_by(patient) %>%
+  mutate(event_num = row_number())
+```
+
+```{r}
+data_02_swimmer_long$c1d1_this_day <- ifelse(
+  data_02_swimmer_long$treatment_start == data_02_swimmer_long$date, data_02_swimmer_long$event_num, NA
+  )
+
+data_02_swimmer_long$pd_this_day <- ifelse(
+  data_02_swimmer_long$disease_progression == data_02_swimmer_long$date, data_02_swimmer_long$event_num, NA
+  )
+
+data_02_swimmer_long$exitus_this_day <- ifelse(
+  data_02_swimmer_long$death == data_02_swimmer_long$date, data_02_swimmer_long$event_num, NA
+  )
+
+data_02_swimmer_long <- data_02_swimmer_long %>% 
+  group_by(patient) %>% 
+  mutate(max_day = max(event_num)) %>% 
+  ungroup() %>% 
+  mutate(patient = fct_reorder(factor(patient), max_day))
+
+# data_02_swimmer_long$event_num <- data_02_swimmer_long$event_num / (365.25/12)
+```
+
+```{r}
+cols <- c(
+  "Study treatment start date" = "#74AAFF",
+  "Disease progression" = "#FFD966",
+  "Exitus" = "#040404"
+)
+
+shape_override <- c(21, 21, 21)
+stroke_override <- c(1, 1, 1)
+size_override <-  c(2, 2, 2)
+
+swimmer <- data_02_swimmer_long %>%
+  ggplot(
+    aes(y = patient, group = patient)) +
+  theme_bw() + 
+  theme(
+    panel.grid.minor.x = element_blank(),
+    panel.border = element_blank()
+  ) +
+  # 1 data layer: line plot showing number of TAs
+  geom_line(aes(x = event_num), linewidth = 0.8, color = "#9A99A0") +
+  # # 2 data layer: dot plot showing whether the study treatment start date
+  geom_point(aes(x = c1d1_this_day),
+             size = 2.5,
+             stroke = 0.5,
+             shape = 21,
+             color = "#040404",
+             fill = "#74AAFF") +
+  # 3 data layer: dot plot showing whether disease progression
+  geom_point(aes(x = pd_this_day),
+             size = 2.5,
+             stroke = 0.5,
+             shape = 21,
+             color = "#040404",
+             fill = "#FFD966") +
+  # 4 data layer: dot plot showing TAs with an OR = SD
+  geom_point(aes(x = exitus_this_day),
+             size = 2.5,
+             stroke = 0.5,
+             shape = 21,
+             color = "#040404",
+             fill = "#040404") +
+  # Final aesthetics adjustments
+  scale_color_manual(values = cols,
+                     # limits = c('Study treatment start date', 'Disease progression', 'Exitus'),
+                     name = "XXXX") +
+  scale_x_continuous(breaks = seq(0, 18, 2)) +
+  guides(color = guide_legend(
+  override.aes = list(
+    shape = shape_override,
+    stroke = stroke_override,
+    size = size_override
+  )
+)) +
+  labs(
+    x = "Time since study treatment start date (months)",
+    y = "Patient"
+  )
+
+# ggsave(
+#   "output/swimmer-plot/materials/DEBBRAH_swimmer_2023-05-23.png",
+#   swimmer,
+#   width = 2048,
+#   height = 1024,
+#   units = "px",
+#   dpi = 300
+#   )
+  
+swimmer
+```
+

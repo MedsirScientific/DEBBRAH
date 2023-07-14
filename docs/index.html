@@ -284,7 +284,7 @@ $(document).ready(function () {
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
 <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
-workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger"
+workflowr <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span>
 </button>
 </p>
@@ -295,8 +295,8 @@ aria-hidden="true"></span>
 </li>
 <li>
 <a data-toggle="tab" href="#checks"> Checks <span
-class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> </a>
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</a>
 </li>
 <li>
 <a data-toggle="tab" href="#versions">Past versions</a>
@@ -309,9 +309,9 @@ aria-hidden="true"></span> </a>
 </p>
 <p>
 <strong>Checks:</strong> <span
-class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 1
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 2
 <span class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> 1
+aria-hidden="true"></span> 0
 </p>
 <p>
 <strong>Knit directory:</strong> <code>DEBBRAH/</code> <span
@@ -334,34 +334,33 @@ versions</em> tab lists the development history.
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges">
-<span class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted
-changes </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
 </p>
 </div>
-<div id="strongRMarkdownfilestronguncommittedchanges"
+<div id="strongRMarkdownfilestronguptodate"
 class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown file has unstaged changes. To know which version of
-the R Markdown file created these results, you’ll want to first commit
-it to the Git repo. If you’re still working on the analysis, you can
-ignore this warning. When you’re finished, you can run
-<code>wflow_publish</code> to commit the R Markdown file and build the
-HTML.</p>
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
 </div>
 </div>
 </div>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrong016b091">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomMedsirScientificDEBBRAHtree950b8026fa4ef3fffd51a88e56a3222d7d470a2dtargetblank950b802a">
 <span class="glyphicon glyphicon-ok text-success"
-aria-hidden="true"></span> <strong>Repository version:</strong> 016b091
+aria-hidden="true"></span> <strong>Repository version:</strong>
+<a href="https://github.com/MedsirScientific/DEBBRAH/tree/950b8026fa4ef3fffd51a88e56a3222d7d470a2d" target="_blank">950b802</a>
 </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrong016b091"
+<div
+id="strongRepositoryversionstrongahrefhttpsgithubcomMedsirScientificDEBBRAHtree950b8026fa4ef3fffd51a88e56a3222d7d470a2dtargetblank950b802a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -370,7 +369,8 @@ and connecting the code version to the results is critical for
 reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version 016b091.
+The results in this page were generated with repository version
+<a href="https://github.com/MedsirScientific/DEBBRAH/tree/950b8026fa4ef3fffd51a88e56a3222d7d470a2d" target="_blank">950b802</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -389,13 +389,6 @@ Ignored files:
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
     Ignored:    analysis/.DS_Store
-    Ignored:    analysis/DEBBRAH_0102-001_prior-lines_2023-05-30.png
-    Ignored:    analysis/DEBBRAH_0109-006_prior-lines_2023-05-30.png
-    Ignored:    analysis/DEBBRAH_0116-004_prior-lines_2023-05-30.png
-    Ignored:    analysis/DEBBRAH_0120-007_prior-lines_2023-05-30.png
-    Ignored:    analysis/DEBBRAH_0121-006_prior-lines_2023-05-30.png
-    Ignored:    analysis/DEBBRAH_0124-004_prior-lines_2023-05-30.png
-    Ignored:    analysis/DEBBRAH_0124-006_prior-lines_2023-05-30.png
     Ignored:    data/DEBBRAH_Adverse Events_2023_05_11.xlsx
     Ignored:    data/DEBBRAH_Concomitant Medication_2023_05_11.xlsx
     Ignored:    data/DEBBRAH_Cycles_2023_05_11.xlsx
@@ -414,17 +407,6 @@ Untracked files:
     Untracked:  output/DEBBRAH_Figure1_OS_cohort5_2023-06-01.png
     Untracked:  output/DEBBRAH_Figure2_PFS_cohort5_2023-06-01.png
     Untracked:  output/DEBBRAH_Figure3_PFS_weeks16-24_cohort5_2023-06-01.png
-
-Unstaged changes:
-    Modified:   analysis/WP4_efficacy_2023-06-01.Rmd
-    Modified:   analysis/index.Rmd
-
-Staged changes:
-    Modified:   .gitignore
-    New:        analysis/WP1_QA_tumor-assessments_2023-05-11.Rmd
-    New:        analysis/WP2_disease-timecourse_2023-05-23.Rmd
-    New:        analysis/WP3_prior-lines-ABC_2023-05-30.Rmd
-    New:        analysis/WP4_efficacy_2023-06-01.Rmd
 
 </code></pre>
 <p>
@@ -474,7 +456,41 @@ Message
 Rmd
 </td>
 <td>
-016b091
+<a href="https://github.com/MedsirScientific/DEBBRAH/blob/950b8026fa4ef3fffd51a88e56a3222d7d470a2d/analysis/index.Rmd" target="_blank">950b802</a>
+</td>
+<td>
+MedsirScientific
+</td>
+<td>
+2023-07-14
+</td>
+<td>
+Sync up everything before laptop reset
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/MedsirScientific/DEBBRAH/950b8026fa4ef3fffd51a88e56a3222d7d470a2d/docs/index.html" target="_blank">950b802</a>
+</td>
+<td>
+MedsirScientific
+</td>
+<td>
+2023-07-14
+</td>
+<td>
+Sync up everything before laptop reset
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/MedsirScientific/DEBBRAH/blob/016b091c8b8feb81aaf15ed7faf85093e08f8edb/analysis/index.Rmd" target="_blank">016b091</a>
 </td>
 <td>
 MedsirScientific
